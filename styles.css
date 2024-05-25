@@ -1,0 +1,9 @@
+div.csw__flex-container {
+    display: flex;
+}
+
+div.csw__flex-container textarea {
+    flex: 1;
+    height: 200px;
+    margin-bottom: 20px;
+}
