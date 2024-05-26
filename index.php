@@ -44,7 +44,8 @@ class CensorSwearWords {
         <div class="wrap">
             <h1>Censor Swear Words Settings</h1>
             <form action="options.php" method="POST">
-                <?php settings_fields('csw_group');
+                <?php settings_errors();
+                settings_fields('csw_group');
                 do_settings_sections('censor-swear-words-settings');
                 submit_button(); ?>
             </form>
@@ -69,8 +70,12 @@ class CensorSwearWords {
     }
 
     function csw_censor_words($content) {
-        //$wordsToCensor = $this->getWordsToCensor();
-        //str_ireplace('bad', $content);
+        $wordsToCensor = $this->getWordsToCensor();
+        $newContent = $content;
+        foreach ($wordsToCensor as $word):
+            $newContent = str_ireplace($word, esc_attr(get_option('csw_' . $word . '_replace', str_repeat('*', strlen($word)))), $newContent);
+        endforeach;
+        return $newContent;
     }
 
     function csw_options() {
@@ -78,7 +83,10 @@ class CensorSwearWords {
         $wordsToCensor = $this->getWordsToCensor();
         foreach ($wordsToCensor as $word):
             $newOptionName = 'csw_' . $word . '_replace';
-            add_settings_field($newOptionName, $word, array($this, 'csw_word_replace'), 'censor-swear-words-settings', 'censor_words_section', array('optionName' => $newOptionName));
+            add_settings_field($newOptionName, $word, array($this, 'csw_word_replace'), 'censor-swear-words-settings', 'censor_words_section', array(
+                'optionName' => $newOptionName,
+                'word' => $word
+            ));
             register_setting('csw_group', $newOptionName, array(
                 'sanitize_callback' => 'sanitize_text_field',
                 'default' => str_repeat('*', strlen($word))
@@ -91,7 +99,7 @@ class CensorSwearWords {
     }
 
     function csw_word_replace($param) { ?>
-        <input type="text" name="<?php echo $param['optionName']; ?>"></input>
+        <input type="text" name="<?php echo $param['optionName']; ?>" value="<?php echo esc_attr(get_option($param['optionName'])); ?>"></input>
     <?php }
 }
 
